@@ -1,23 +1,38 @@
-import java.util.Queue;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RequestQueue {
-    private final Queue<Request> queue = new LinkedList<Request>();
-    public synchronized Request getRequest() {
-        while (queue.peek() == null) {
-            try {
-                System.out.println(Thread.currentThread().getName() + ": wait() begins, queue = " + queue);
-                wait();
-                System.out.println(Thread.currentThread().getName() + ": wait() ends,   queue = " + queue);
-            } catch (InterruptedException e) {
-            }
-        }
-        return queue.remove();
-    }
-    public synchronized void putRequest(Request request) {
-        queue.offer(request);
-        System.out.println(Thread.currentThread().getName() + ": notifyAll() begins, queue = " + queue);
-        notifyAll();
-        System.out.println(Thread.currentThread().getName() + ": notifyAll() ends, queue = " + queue);
-    }
+	private final ConcurrentHashMap<String, StructDto> queue = new ConcurrentHashMap<String, StructDto>();
+
+	public synchronized StructDto getRequest() {
+
+		StructDto dto = new StructDto();
+		dto.setName("name");
+		queue.put("key1", dto);
+
+		delRequestAll();
+
+		dto = new StructDto();
+		dto.setName("name2");
+		queue.put("key1", dto);
+
+		StructDto dto2 = this.queue.get("key1");
+
+		return dto2;
+
+	}
+
+	public synchronized void delRequest() {
+
+		this.queue.remove("key1");
+
+	}
+
+	public synchronized void delRequestAll() {
+
+		for (String key : this.queue.keySet()) {
+			this.queue.remove(key);
+		}
+
+	}
+
 }
